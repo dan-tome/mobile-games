@@ -123,9 +123,9 @@ export const LEVELS = [
     name: 'Level 10',
     intro: 'hard',
     hard: true,
-    capacity: 2,
+    capacity: 3,
     active: 1,
-    orders: 'G3 R3 P4 Y4 O3 B3',
+    orders: 'G3 R3 P4 O3 Y4 B3',
     board: [
       'R^ B^ Y^ R^ B^ Y^',
       'Y< R^ B^ Y^ R^ B>',

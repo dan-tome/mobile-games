@@ -70,9 +70,10 @@ New decisions it creates:
 - **Levels 4–10:**
   - Yellow arrives at L4 with orange and green orders but no explanation. Working out red + yellow = orange and blue + yellow = green is part of the challenge. There is no recipe key on screen. A caption names the mix after it happens.
   - L5 is the first level with all three secondaries.
-  - `C` drops 7 → 5.
-  - The first possible forced mix comes at L7.
-  - L10 is the first labelled **Hard** level (slack 0, trap ratio ≈ 30%).
+  - `C` is 4 from L4 to L9, then 3 on L10.
+  - L7 introduces the forced mix, on a relief level (4 slots, 2 active orders).
+  - L10 is the first labelled **Hard** level (trap ratio ≈ 30%; the greybox L10 is 26% with slack 2).
+  - Greybox check: a player who taps at random wins L4 96%, L5 67%, L6 57%, L7 86%, L8 66%, L9 34%, L10 0%. More active orders make a level easier, not harder.
 - **Near-fail spike levels:** 10, 20 and 30 are labelled Hard. 15 and 25 are medium spikes. Every spike is followed by 1–2 easy relief levels.
 - **Levels 11–30 pattern:** a sawtooth (3–4 rising levels, spike, relief). New elements:
   - walls at L12,

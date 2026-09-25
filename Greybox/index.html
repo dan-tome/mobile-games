@@ -1,0 +1,579 @@
+<meta charset="utf-8">
+<title>Prototype01 Greybox</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&display=swap">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #121a2e;
+    --panel: #1b2542;
+    --cell: #222d50;
+    --line: #2d3a66;
+    --text: #eef1f8;
+    --muted: #8c97b5;
+    --ink: rgba(12, 17, 32, 0.78);
+    --ink-soft: rgba(12, 17, 32, 0.42);
+    --btn: #2a3663;
+    --btn-hi: #36447a;
+    --good: #33c27f;
+    --bad: #ef4b4b;
+    --R: #ef4b4b;
+    --Y: #f7c443;
+    --B: #3d8bfd;
+    --P: #9d5cf0;
+    --O: #f58a2e;
+    --G: #33c27f;
+    --cs: 52px;
+    font-family: 'Fredoka', ui-rounded, 'SF Pro Rounded', system-ui, sans-serif;
+  }
+  html, body { height: 100%; }
+  [hidden] { display: none !important; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  button {
+    font: inherit;
+    color: var(--text);
+    background: var(--btn);
+    border: 0;
+    border-radius: 12px;
+    padding: 10px 14px;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  button:hover { background: var(--btn-hi); }
+  button:focus-visible { outline: 2px solid var(--Y); outline-offset: 2px; }
+  button.primary { background: var(--text); color: var(--bg); font-weight: 600; }
+  button.primary:hover { background: #fff; }
+
+  #app {
+    height: 100%;
+    max-width: 520px;
+    margin: 0 auto;
+    padding-inline: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding-block: 12px;
+    box-sizing: border-box;
+  }
+  header { display: flex; align-items: center; gap: 8px; }
+  header h1 { font-size: 19px; font-weight: 600; margin: 0; flex: 1; display: flex; align-items: center; gap: 8px; white-space: nowrap; min-width: 0; }
+  .pill { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; background: var(--bad); color: #fff; border-radius: 99px; padding: 3px 8px; font-weight: 600; }
+  header button { padding: 8px 10px; font-size: 13px; }
+
+  #orders { display: flex; gap: 8px; align-items: stretch; min-height: 64px; }
+  .order {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--panel);
+    border-radius: 14px;
+    padding: 8px 10px;
+    transition: transform 0.15s;
+  }
+  .order.next { flex: 0 0 auto; opacity: 0.55; flex-direction: column; justify-content: center; gap: 4px; padding: 6px 10px; }
+  .order.next .label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .order .count { font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .order .pips { display: flex; gap: 4px; flex-wrap: wrap; }
+  .pip { width: 10px; height: 10px; border-radius: 3px; background: var(--line); }
+  .pip.on { background: var(--text); }
+  .order.flash { animation: pop 0.3s; }
+
+  #hint { min-height: 20px; color: var(--muted); font-size: 14px; line-height: 1.35; text-align: center; text-wrap: balance; }
+
+  #boardWrap { flex: 1; display: flex; align-items: center; justify-content: center; min-height: 0; }
+  #board {
+    display: grid;
+    gap: 4px;
+    padding: 8px;
+    background: var(--panel);
+    border-radius: 18px;
+    position: relative;
+  }
+  .cell { width: var(--cs); height: var(--cs); border-radius: 22%; background: var(--cell); }
+  .cell.wall { background: var(--line); }
+
+  .tile {
+    width: 100%;
+    height: 100%;
+    border-radius: 22%;
+    position: relative;
+    box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.18);
+    display: grid;
+    place-items: center;
+  }
+  .unit { cursor: pointer; touch-action: manipulation; }
+  .tile .arrow { width: 52%; height: 52%; }
+  .tile .shapes { position: absolute; top: 9%; left: 9%; display: flex; gap: 2px; }
+  .tile .shapes svg { width: calc(var(--cs) * 0.2); height: calc(var(--cs) * 0.2); }
+  .tile.big .shapes { position: static; }
+  .tile.big .shapes svg { width: 34%; height: 34%; min-width: 14px; min-height: 14px; }
+  .swatch { width: 40px; height: 40px; flex: 0 0 auto; }
+  .swatch .shapes svg { width: 13px !important; height: 13px !important; }
+  .order.next .swatch { width: 28px; height: 28px; }
+  .order.next .swatch .shapes svg { width: 10px !important; height: 10px !important; }
+
+  #trayWrap { display: flex; flex-direction: column; gap: 6px; }
+  #trayLabel { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+  #tray { display: flex; gap: 8px; justify-content: center; }
+  .slot {
+    width: min(60px, 17vw);
+    aspect-ratio: 1;
+    max-width: 100%;
+    border-radius: 16px;
+    background: var(--panel);
+    border: 2px dashed var(--line);
+    box-sizing: border-box;
+    display: grid;
+    place-items: center;
+    padding: 4px;
+  }
+  .slot.filled { border-style: solid; border-color: transparent; }
+  .slot.extra { border-color: var(--good); }
+  .slot.flash { animation: pop 0.3s; }
+  .slot.forced .tile { animation: warn 0.9s 2; }
+  #tray.full .slot { border-color: var(--bad); }
+
+  .shake-x { animation: shakeX 0.28s; }
+  .shake-y { animation: shakeY 0.28s; }
+  .blocker { animation: blink 0.35s; }
+  @keyframes shakeX { 25% { transform: translateX(var(--nudge)); } 60% { transform: translateX(calc(var(--nudge) * -0.4)); } }
+  @keyframes shakeY { 25% { transform: translateY(var(--nudge)); } 60% { transform: translateY(calc(var(--nudge) * -0.4)); } }
+  @keyframes blink { 50% { filter: brightness(1.6); } }
+  @keyframes pop { 40% { transform: scale(1.12); } }
+  @keyframes warn { 50% { filter: brightness(1.5) saturate(0.4); transform: scale(0.9); } }
+
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(8, 11, 22, 0.72);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 16px;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    z-index: 10;
+  }
+  .sheet {
+    width: 100%;
+    max-width: 440px;
+    background: var(--panel);
+    border-radius: 22px;
+    padding: 22px 18px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    max-height: 85%;
+    overflow: auto;
+    box-sizing: border-box;
+  }
+  .sheet h2 { margin: 0; font-size: 26px; font-weight: 600; text-wrap: balance; }
+  .sheet p { margin: 0; color: var(--muted); line-height: 1.4; }
+  .sheet .actions { display: flex; flex-direction: column; gap: 8px; }
+  .sheet .actions button { padding: 14px; font-size: 16px; }
+  .sheet .offer { background: var(--good); color: #0b2417; font-weight: 600; }
+  .sheet .offer:hover { background: #45d690; }
+  .sheet .offer small { display: block; font-weight: 400; font-size: 12px; opacity: 0.8; }
+
+  .levels { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .levels button { aspect-ratio: 1; padding: 0; font-size: 18px; font-weight: 600; position: relative; }
+  .levels button.won { background: #1f5a44; }
+  .levels button.hard::after { content: 'H'; position: absolute; top: 3px; right: 6px; font-size: 10px; color: var(--bad); }
+  .levels button.current { outline: 2px solid var(--text); }
+
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+  th, td { padding: 6px 6px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .row { display: flex; gap: 8px; }
+  .row button { flex: 1; }
+  #toast { font-size: 13px; color: var(--good); min-height: 16px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div id="app">
+  <header>
+    <h1 id="title">Level 1</h1>
+    <button id="btnRestart" type="button" aria-label="Restart level">Restart</button>
+    <button id="btnLevels" type="button">Levels</button>
+    <button id="btnStats" type="button">Stats</button>
+  </header>
+  <div id="orders"></div>
+  <div id="hint"></div>
+  <div id="boardWrap"><div id="board"></div></div>
+  <div id="trayWrap">
+    <div id="trayLabel"><span>Tray</span><span id="trayCount"></span></div>
+    <div id="tray"></div>
+  </div>
+</div>
+<div id="overlay" class="overlay" hidden><div class="sheet" id="sheet"></div></div>
+
+<script type="module">
+  import { LEVELS } from './levels.js';
+  import { parseLevel, initialState, tap, isFree, unitsLeft, clone, PARENTS, SECONDARIES } from './rules.js';
+
+  const $ = (id) => document.getElementById(id);
+  const NAMES = { R: 'red', Y: 'yellow', B: 'blue', P: 'purple', O: 'orange', G: 'green' };
+  const SHAPE = {
+    R: '<circle cx="12" cy="12" r="9"/>',
+    Y: '<path d="M12 3 L21.5 20 H2.5 Z"/>',
+    B: '<rect x="4" y="4" width="16" height="16" rx="2"/>',
+  };
+  const ROT = { '^': 0, '>': 90, v: 180, '<': 270 };
+  const DELTA = { '^': [0, -1], v: [0, 1], '<': [-1, 0], '>': [1, 0] };
+  const levels = LEVELS.map(parseLevel);
+
+  // ---------- playtest log (device-local) ----------
+  const STORE = 'p01.greybox.v1';
+  let db = { levels: {}, log: [], current: 0 };
+  try { db = { ...db, ...JSON.parse(localStorage.getItem(STORE) || '{}') }; } catch {}
+  const save = () => { try { localStorage.setItem(STORE, JSON.stringify(db)); } catch {} };
+  const rec = (name) => (db.levels[name] ??= { attempts: 0, wins: 0, overflow: 0, dead: 0, continues: 0, quits: 0, ms: 0, bestMs: null });
+  function logEvent(ev, extra = {}) {
+    db.log.push({ t: new Date().toISOString(), level: level.name, ev, moves: state.moves, ...extra });
+    if (db.log.length > 1000) db.log.splice(0, db.log.length - 1000);
+    save();
+  }
+
+  // ---------- game state ----------
+  let idx = 0, level, state, history, attempt;
+  // attempt: { started, t0, ms, continued, over }
+
+  function load(i) {
+    idx = Math.max(0, Math.min(levels.length - 1, i));
+    level = levels[idx];
+    state = initialState(level);
+    history = [];
+    attempt = { started: false, t0: 0, ms: 0, continued: false, over: false };
+    db.current = idx;
+    save();
+    hideOverlay();
+    sizeBoard();
+    render();
+  }
+
+  function elapsed() { return attempt.ms + (attempt.t0 ? performance.now() - attempt.t0 : 0); }
+  function pauseClock() { attempt.ms = elapsed(); attempt.t0 = 0; }
+
+  function abandon() {
+    if (attempt.started && !attempt.over) {
+      pauseClock();
+      const r = rec(level.name);
+      r.quits++;
+      r.ms += attempt.ms;
+      logEvent('quit', { ms: Math.round(attempt.ms) });
+    }
+  }
+
+  let busy = false;
+  function onTap(u, el) {
+    if (busy || attempt.over) return;
+    if (!isFree(level, state, u)) return blocked(u, el);
+    if (!attempt.started) {
+      attempt.started = true;
+      attempt.t0 = performance.now();
+      rec(level.name).attempts++;
+      logEvent('level_start');
+    }
+    const prev = state;
+    const r = tap(level, state, u);
+    busy = true;
+    buzz(12);
+    flyOut(u, el).then(() => {
+      busy = false;
+      history.push(prev);
+      state = r.state;
+      if (r.result === 'overflow') {
+        state = prev;
+        render();
+        $('tray').classList.add('full');
+        return fail('overflow', u);
+      }
+      render(r);
+      if (r.result === 'win') return win();
+      if (r.result === 'dead') return fail('dead', u, r.placement);
+    });
+  }
+
+  function blocked(u, el) {
+    const unit = level.units[u];
+    const first = unit.blockers.find((b) => state.alive[b]);
+    const [dx, dy] = DELTA[unit.d];
+    el.style.setProperty('--nudge', `${(dx || dy) * 8}px`);
+    const cls = dx ? 'shake-x' : 'shake-y';
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+    const bEl = $('board').querySelector(`[data-u="${first}"]`);
+    if (bEl) { bEl.classList.remove('blocker'); void bEl.offsetWidth; bEl.classList.add('blocker'); }
+    buzz([8, 30, 8]);
+  }
+
+  function flyOut(u, el) {
+    const unit = level.units[u];
+    const [dx, dy] = DELTA[unit.d];
+    const cells = dx > 0 ? level.w - unit.x : dx < 0 ? unit.x + 1 : dy > 0 ? level.h - unit.y : unit.y + 1;
+    const cs = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--cs')) + 4;
+    const dist = cells * cs + 12;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches || !el.animate) return Promise.resolve();
+    el.style.zIndex = 2;
+    const a = el.animate(
+      [{ transform: 'translate(0,0)', opacity: 1 }, { transform: `translate(${dx * dist}px, ${dy * dist}px)`, opacity: 0.2 }],
+      { duration: 110 + cells * 25, easing: 'cubic-bezier(.5,0,.9,.6)', fill: 'forwards' },
+    );
+    return a.finished.catch(() => {});
+  }
+
+  function win() {
+    attempt.over = true;
+    pauseClock();
+    const r = rec(level.name);
+    r.wins++;
+    r.ms += attempt.ms;
+    r.bestMs = r.bestMs == null ? attempt.ms : Math.min(r.bestMs, attempt.ms);
+    logEvent('level_complete', { ms: Math.round(attempt.ms), continued: attempt.continued });
+    buzz([20, 40, 20]);
+    const last = idx === levels.length - 1;
+    showSheet(`
+      <h2>${level.name} cleared</h2>
+      <p>${fmt(attempt.ms)} · ${state.moves} taps${attempt.continued ? ' · used a continue' : ''}</p>
+      <div class="actions">
+        ${last ? '<p>That is every greybox level. Open Stats to copy your results.</p>' : '<button class="primary" id="ovNext" type="button">Next level</button>'}
+        <button id="ovReplay" type="button">Play again</button>
+        ${last ? '<button class="primary" id="ovStats" type="button">Stats</button>' : ''}
+      </div>`);
+    $('ovNext')?.addEventListener('click', () => load(idx + 1));
+    $('ovReplay').addEventListener('click', () => load(idx));
+    $('ovStats')?.addEventListener('click', showStats);
+  }
+
+  function fail(kind, u, placement) {
+    pauseClock();
+    const r = rec(level.name);
+    r[kind]++;
+    logEvent('level_fail', { reason: kind, ms: Math.round(attempt.ms), left: unitsLeft(state) });
+    buzz([40, 60, 40]);
+    if (kind === 'dead' && placement?.kind === 'forced') {
+      $('tray').children[placement.slot]?.classList.add('forced');
+    }
+    const left = unitsLeft(state) + (kind === 'overflow' ? 1 : 0);
+    const canContinue = !attempt.continued;
+    const offer = kind === 'overflow'
+      ? { label: 'Continue: +2 tray slots', sub: 'Free in the greybox' }
+      : { label: 'Continue: undo last 3 taps', sub: 'Free in the greybox' };
+    showSheet(`
+      <h2>${kind === 'overflow' ? 'Tray full!' : 'Wrong mix!'}</h2>
+      <p>${kind === 'overflow'
+        ? `So close! ${left} block${left === 1 ? '' : 's'} left.`
+        : `A mix used up colours that the remaining orders still need. ${left} block${left === 1 ? '' : 's'} left.`}</p>
+      <div class="actions">
+        ${canContinue ? `<button class="offer" id="ovContinue" type="button">${offer.label}<small>${offer.sub}</small></button>` : ''}
+        <button id="ovRetry" type="button" ${canContinue ? '' : 'class="primary"'}>Retry</button>
+      </div>`);
+    $('ovRetry').addEventListener('click', () => { attempt.over = true; rec(level.name).ms += attempt.ms; save(); load(idx); });
+    $('ovContinue')?.addEventListener('click', () => continueAfter(kind, u));
+  }
+
+  function continueAfter(kind, u) {
+    attempt.continued = true;
+    rec(level.name).continues++;
+    logEvent('continue', { reason: kind });
+    hideOverlay();
+    attempt.t0 = performance.now();
+    if (kind === 'overflow') {
+      // state is the pre-tap state; add two slots and replay the tap.
+      state = clone(state);
+      state.tray.push(null, null);
+      history.pop();
+      const r = tap(level, state, u);
+      history.push(state);
+      state = r.state;
+      render(r);
+      if (r.result === 'win') return win();
+      if (r.result === 'dead') return fail('dead', u, r.placement);
+    } else {
+      const back = Math.min(3, history.length);
+      state = history[history.length - back];
+      history.length -= back;
+      render();
+    }
+  }
+
+  // ---------- rendering ----------
+  const shapesFor = (c) => (PARENTS[c] || [c]).map((p) => `<svg viewBox="0 0 24 24" fill="var(--ink-soft)">${SHAPE[p]}</svg>`).join('');
+  const arrowSvg = (d) => `<svg class="arrow" viewBox="0 0 24 24" style="transform:rotate(${ROT[d]}deg)" fill="none" stroke="var(--ink)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V5M5.5 11.5 12 5l6.5 6.5"/></svg>`;
+  const tileHtml = (c, cls = '') => `<div class="tile ${cls}" style="background:var(--${c})" title="${NAMES[c]}"><div class="shapes">${shapesFor(c)}</div></div>`;
+
+  function render(r) {
+    $('title').innerHTML = `${level.name}${level.hard ? ' <span class="pill">Hard</span>' : ''}`;
+    $('hint').textContent = level.hint || '';
+
+    // orders
+    const ord = $('orders');
+    ord.innerHTML = '';
+    const flashPos = new Set();
+    if (r?.placement?.pos != null) flashPos.add(r.placement.pos);
+    r?.events?.forEach((e) => e.pos != null && flashPos.add(e.pos));
+    state.active.forEach((o, k) => {
+      if (!o) return;
+      const { c, n } = level.orders[o.i];
+      const el = document.createElement('div');
+      el.className = 'order' + (flashPos.has(k) ? ' flash' : '');
+      el.innerHTML = `<div class="swatch">${tileHtml(c, 'big')}</div>
+        <div><div class="count">${o.filled}/${n}</div><div class="pips">${'<span class="pip on"></span>'.repeat(o.filled)}${'<span class="pip"></span>'.repeat(n - o.filled)}</div></div>`;
+      el.setAttribute('aria-label', `Order: ${n} ${NAMES[c]}, ${o.filled} done`);
+      ord.appendChild(el);
+    });
+    if (state.next < level.orders.length) {
+      const { c, n } = level.orders[state.next];
+      const el = document.createElement('div');
+      el.className = 'order next';
+      el.innerHTML = `<span class="label">Next</span><div class="swatch">${tileHtml(c, 'big')}</div><span class="label">×${n}</span>`;
+      ord.appendChild(el);
+    }
+
+    // board
+    const board = $('board');
+    board.style.gridTemplateColumns = `repeat(${level.w}, var(--cs))`;
+    board.innerHTML = '';
+    const at = new Map();
+    level.units.forEach((u, i) => state.alive[i] && at.set(u.y * level.w + u.x, i));
+    for (let y = 0; y < level.h; y++) {
+      for (let x = 0; x < level.w; x++) {
+        const cell = document.createElement('div');
+        const key = y * level.w + x;
+        cell.className = 'cell' + (level.walls.has(key) ? ' wall' : '');
+        if (at.has(key)) {
+          const i = at.get(key);
+          const u = level.units[i];
+          const t = document.createElement('div');
+          t.className = 'tile unit';
+          t.dataset.u = i;
+          t.style.background = `var(--${u.c})`;
+          t.innerHTML = `<div class="shapes">${shapesFor(u.c)}</div>${arrowSvg(u.d)}`;
+          t.setAttribute('role', 'button');
+          t.setAttribute('aria-label', `${NAMES[u.c]} block pointing ${{ '^': 'up', v: 'down', '<': 'left', '>': 'right' }[u.d]}`);
+          t.addEventListener('pointerdown', (e) => { e.preventDefault(); onTap(i, t); });
+          cell.appendChild(t);
+        }
+        board.appendChild(cell);
+      }
+    }
+
+    // tray
+    const tray = $('tray');
+    tray.classList.remove('full');
+    tray.innerHTML = '';
+    const flashSlots = new Set();
+    if (r?.placement?.slot != null) flashSlots.add(r.placement.slot);
+    r?.events?.forEach((e) => { if (e.slot != null) flashSlots.add(e.slot); e.slots?.forEach((s) => flashSlots.add(s)); });
+    state.tray.forEach((q, j) => {
+      const s = document.createElement('div');
+      s.className = 'slot' + (q ? ' filled' : '') + (j >= level.capacity ? ' extra' : '') + (flashSlots.has(j) ? ' flash' : '');
+      if (q) s.innerHTML = tileHtml(q, 'big');
+      tray.appendChild(s);
+    });
+    const used = state.tray.filter(Boolean).length;
+    $('trayCount').textContent = `${used}/${state.tray.length} full · ${unitsLeft(state)} blocks left`;
+  }
+
+  function sizeBoard() {
+    const w = Math.min(window.innerWidth, 520) - 32 - 16 - 4 * (level.w - 1);
+    const reserved = 330;
+    const h = window.innerHeight - reserved - 16 - 4 * (level.h - 1);
+    const cs = Math.max(30, Math.floor(Math.min(64, w / level.w, h / level.h)));
+    document.documentElement.style.setProperty('--cs', cs + 'px');
+  }
+  window.addEventListener('resize', () => { if (level) { sizeBoard(); } });
+
+  // ---------- overlays ----------
+  function showSheet(html) {
+    $('sheet').innerHTML = html;
+    $('overlay').hidden = false;
+    $('sheet').querySelector('button')?.focus({ preventScroll: true });
+  }
+  function hideOverlay() { $('overlay').hidden = true; }
+  $('overlay').addEventListener('click', (e) => {
+    if (e.target === $('overlay') && $('overlay').dataset.dismiss) { hideOverlay(); delete $('overlay').dataset.dismiss; }
+  });
+
+  function showLevels() {
+    showSheet(`
+      <h2>Levels</h2>
+      <div class="levels">${levels.map((l, i) => {
+        const won = db.levels[l.name]?.wins > 0;
+        return `<button type="button" data-i="${i}" class="${won ? 'won' : ''} ${l.hard ? 'hard' : ''} ${i === idx ? 'current' : ''}" aria-label="${l.name}${won ? ', cleared' : ''}">${i + 1}</button>`;
+      }).join('')}</div>
+      <div class="actions"><button type="button" id="ovClose">Close</button></div>`);
+    $('overlay').dataset.dismiss = '1';
+    $('sheet').querySelectorAll('[data-i]').forEach((b) => b.addEventListener('click', () => { abandon(); load(Number(b.dataset.i)); }));
+    $('ovClose').addEventListener('click', hideOverlay);
+  }
+
+  function showStats() {
+    const rows = levels.map((l) => {
+      const r = db.levels[l.name] || {};
+      const fails = (r.overflow || 0) + (r.dead || 0);
+      return `<tr><td>${l.name.replace('Level ', 'L')}${l.hard ? ' H' : ''}</td><td>${r.attempts || 0}</td><td>${r.wins || 0}</td>
+        <td>${r.overflow || 0}/${r.dead || 0}</td><td>${r.continues || 0}</td><td>${r.quits || 0}</td>
+        <td>${r.attempts ? fmt((r.ms || 0) / r.attempts) : '–'}</td><td>${r.bestMs != null ? fmt(r.bestMs) : '–'}</td></tr>`;
+    }).join('');
+    const total = Object.values(db.levels).reduce((a, r) => a + (r.ms || 0), 0);
+    showSheet(`
+      <h2>Playtest stats</h2>
+      <p>Stored on this device only. Total play time ${fmt(total)}.</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Level</th><th>Tries</th><th>Wins</th><th>Full/Mix</th><th>Cont.</th><th>Quit</th><th>Avg</th><th>Best</th></tr></thead>
+        <tbody>${rows}</tbody></table></div>
+      <div id="toast"></div>
+      <div class="row">
+        <button class="primary" id="ovCopy" type="button">Copy results</button>
+        <button id="ovReset" type="button">Reset</button>
+      </div>
+      <div class="actions"><button type="button" id="ovClose">Close</button></div>`);
+    $('overlay').dataset.dismiss = '1';
+    $('ovClose').addEventListener('click', hideOverlay);
+    $('ovCopy').addEventListener('click', async () => {
+      const text = JSON.stringify({ levels: db.levels, log: db.log });
+      try { await navigator.clipboard.writeText(text); $('toast').textContent = 'Copied. Paste it into the chat with Claude.'; }
+      catch { $('toast').textContent = 'Copy was blocked here. Screenshot this table instead.'; }
+    });
+    $('ovReset').addEventListener('click', (e) => {
+      if (e.currentTarget.dataset.armed) {
+        db.levels = {}; db.log = []; save(); showStats();
+      } else {
+        e.currentTarget.dataset.armed = '1';
+        e.currentTarget.textContent = 'Tap again to erase';
+      }
+    });
+  }
+
+  $('btnRestart').addEventListener('click', () => { abandon(); load(idx); });
+  $('btnLevels').addEventListener('click', showLevels);
+  $('btnStats').addEventListener('click', showStats);
+
+  function fmt(ms) {
+    const s = Math.round(ms / 1000);
+    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  }
+  function buzz(p) { try { navigator.vibrate?.(p); } catch {} }
+
+  // ---------- boot ----------
+  function start(data) {
+    load(data?.level ?? db.current ?? 0);
+    window.claude?.hot?.snapshot?.(() => ({ level: idx }));
+  }
+  window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? {});
+</script>

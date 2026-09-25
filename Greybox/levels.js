@@ -1,0 +1,132 @@
+// Hand-made greybox levels following the L1-L10 curve in docs/game-design.md.
+// Check every level with `node Greybox/solve.mjs` after editing.
+
+export const LEVELS = [
+  {
+    name: 'Level 1',
+    hint: 'Tap a block. It slides out the way its arrow points, if nothing is in the way.',
+    capacity: 5,
+    active: 1,
+    orders: 'R3 R3',
+    board: [
+      'R^ R^ R^',
+      'R^ R^ R^',
+    ],
+  },
+  {
+    name: 'Level 2',
+    hint: 'Blocks wait in the tray until an order wants them. Clear the way first.',
+    capacity: 4,
+    active: 1,
+    orders: 'R3 B3 R3 B3',
+    board: [
+      'R^ B^ R^ B^',
+      'B^ R< B> R^',
+      '.. R^ B^ ..',
+      '.. Bv Rv ..',
+    ],
+  },
+  {
+    name: 'Level 3',
+    hint: 'Red + blue make purple. Drop one onto the other in the tray.',
+    capacity: 3,
+    active: 1,
+    orders: 'P3',
+    board: [
+      'R^ B^ R^',
+      'B^ R^ B^',
+    ],
+  },
+  {
+    name: 'Level 4',
+    hint: 'Yellow + red make orange. Yellow + blue make green.',
+    capacity: 3,
+    active: 2,
+    orders: 'Y3 O2 G2 B2 Y2',
+    board: [
+      'Y^ Y^ .. B^ Y^',
+      'Y< Y^ B^ R^ Y>',
+      '.. B^ Y^ R^ ..',
+      '.. Yv Bv Yv ..',
+    ],
+  },
+  {
+    name: 'Level 5',
+    capacity: 4,
+    active: 1,
+    orders: 'P2 O2 G2 R2',
+    board: [
+      'R^ B^ Y^ R^',
+      'R< B^ Y^ R>',
+      'B< Y^ B^ Y>',
+      '.. Rv Rv ..',
+    ],
+  },
+  {
+    name: 'Level 6',
+    capacity: 4,
+    active: 1,
+    orders: 'O2 B2 P2 Y2 G2 R2',
+    board: [
+      'B^ R^ Y^ R^ B^',
+      'B< .. R^ .. B>',
+      'Y< R^ Bv Y^ Y>',
+      '.. Y< Rv R> ..',
+      '.. Bv .. Yv ..',
+    ],
+  },
+  {
+    name: 'Level 7',
+    hint: 'Full tray? A new block mixes with whatever is waiting, even if nobody ordered that colour.',
+    capacity: 3,
+    active: 1,
+    orders: 'Y3 P3 O2 B2 G2 R2',
+    board: [
+      'R^ Y^ B^ Y^ R^',
+      'Y^ B^ R^ B^ Y^',
+      'B< Y^ .. R^ B>',
+      'R< Bv Y< Rv Y>',
+      '.. Rv .. Bv ..',
+    ],
+  },
+  {
+    name: 'Level 8',
+    capacity: 4,
+    active: 1,
+    orders: 'G2 R2 O2 P2',
+    board: [
+      'Y^ Y^ B^ B^',
+      'R< Y^ B^ R>',
+      'R< R^ R^ R>',
+      '.. Bv Yv ..',
+    ],
+  },
+  {
+    name: 'Level 9',
+    capacity: 3,
+    active: 1,
+    orders: 'R2 G3 P3 Y2 O3 B2',
+    board: [
+      'B^ R^ Y^ Y^ R^ B^',
+      'R< B^ R^ B^ Y^ Y>',
+      'Y< Y^ B< R> R^ B>',
+      '.. Rv Bv Yv Bv ..',
+      '.. .. Rv Yv .. ..',
+    ],
+  },
+  {
+    name: 'Level 10',
+    hard: true,
+    capacity: 2,
+    active: 1,
+    orders: 'G3 R3 P4 Y4 O3 B3',
+    board: [
+      'R^ B^ Y^ R^ B^ Y^',
+      'Y< R^ B^ Y^ R^ B>',
+      'B< Y^ R< B> Y^ R>',
+      'R< Bv Yv Rv Bv Y>',
+      '.. Yv Rv Bv Rv ..',
+      '.. .. Bv Yv .. ..',
+    ],
+  },
+];

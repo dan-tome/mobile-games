@@ -13,6 +13,7 @@
     --muted: #8c97b5;
     --ink: rgba(12, 17, 32, 0.78);
     --ink-soft: rgba(12, 17, 32, 0.42);
+    --ink-faint: rgba(12, 17, 32, 0.2);
     --btn: #2a3663;
     --btn-hi: #36447a;
     --good: #33c27f;
@@ -91,8 +92,6 @@
   .order.pop { animation: pop 0.25s; }
   .order.enter { animation: enter 0.3s; }
   .order.leave { animation: leave 0.22s forwards; }
-  .swatch { width: 40px; height: 40px; flex: 0 0 auto; }
-  .order.next .swatch { width: 28px; height: 28px; }
 
   #flow { text-align: center; color: var(--muted); font-size: 14px; line-height: 1; height: 10px; }
   #tray { display: flex; gap: 8px; justify-content: center; }
@@ -137,13 +136,14 @@
     box-sizing: border-box;
   }
   .unit { cursor: pointer; touch-action: manipulation; }
-  .tile .arrow { width: 52%; height: 52%; }
-  .tile .shapes { position: absolute; top: 9%; left: 9%; display: flex; gap: 2px; }
-  .tile .shapes svg { width: 11px; height: 11px; }
-  .tile.big .shapes { position: static; }
-  .tile.big .shapes svg { width: 34%; height: 34%; min-width: 11px; min-height: 11px; }
-  .swatch .tile.big .shapes svg { width: 13px; height: 13px; }
-  .order.next .swatch .tile.big .shapes svg { width: 9px; height: 9px; min-width: 9px; min-height: 9px; }
+  .tile .arrow { width: 50%; height: 50%; position: relative; z-index: 1; }
+  /* Shapes are the colour-blind cue: one large shape per primary, two for a mix. */
+  .tile .shapes { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 4%; pointer-events: none; }
+  .tile .shapes svg { width: 60%; height: 60%; }
+  .tile .shapes.two svg { width: 40%; height: 40%; }
+  .unit .shapes svg { width: 72%; height: 72%; fill: var(--ink-faint); }
+  .swatch { width: 44px; height: 44px; flex: 0 0 auto; }
+  .order.next .swatch { width: 30px; height: 30px; }
 
   .fly { position: fixed; z-index: 5; pointer-events: none; }
   .fly .tile { box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.18), 0 6px 16px rgba(0, 0, 0, 0.35); }
@@ -206,6 +206,21 @@
   .row button { flex: 1; }
   #toast { font-size: 13px; color: var(--good); min-height: 16px; }
 
+  .eyebrow { font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--Y); font-weight: 600; }
+  .demo { position: relative; background: var(--bg); border-radius: 16px; padding: 14px; display: flex; flex-direction: column; align-items: center; gap: 10px; overflow: hidden; }
+  .demo .d-order { display: flex; align-items: center; gap: 8px; background: var(--cell); border-radius: 12px; padding: 6px 12px 6px 6px; font-weight: 500; }
+  .demo .d-order .swatch { width: 36px; height: 36px; }
+  .demo .d-tray { display: flex; gap: 6px; }
+  .demo .slot { width: 46px; height: 46px; border-radius: 12px; padding: 3px; }
+  .demo .d-board { display: grid; gap: 4px; }
+  .demo .cell { width: 46px; height: 46px; }
+  .demo .d-tag { position: absolute; font-size: 13px; font-weight: 600; color: var(--bad); white-space: nowrap; opacity: 0; transition: opacity 0.2s; }
+  .demo .fly { position: absolute; }
+  .finger { position: absolute; width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%; border: 3px solid #fff; opacity: 0; pointer-events: none; z-index: 6; }
+  .finger.tap { animation: tapRing 0.45s; }
+  @keyframes tapRing { 0% { opacity: 0; transform: scale(1.6); } 40% { opacity: 1; transform: scale(0.8); } 100% { opacity: 0; transform: scale(1); } }
+  #btnHelp { width: 36px; padding: 8px 0; font-weight: 600; }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
   }
@@ -214,6 +229,7 @@
 <div id="app">
   <header>
     <h1 id="title">Level 1</h1>
+    <button id="btnHelp" type="button" aria-label="How to play">?</button>
     <button id="btnRestart" type="button">Restart</button>
     <button id="btnLevels" type="button">Levels</button>
     <button id="btnStats" type="button">Stats</button>
@@ -281,6 +297,7 @@
     note('');
     sizeBoard();
     render(state);
+    if (level.intro && !db.seen?.[level.intro]) showIntro(level.intro, true);
   }
 
   const elapsed = () => attempt.ms + (attempt.t0 ? performance.now() - attempt.t0 : 0);
@@ -542,8 +559,9 @@
 
   // ---------- rendering ----------
   const shapesFor = (c) => (PARENTS[c] || [c]).map((p) => `<svg viewBox="0 0 24 24" fill="var(--ink-soft)">${SHAPE[p]}</svg>`).join('');
+  const shapesDiv = (c) => `<div class="shapes${PARENTS[c] ? ' two' : ''}">${shapesFor(c)}</div>`;
   const arrowSvg = (d) => `<svg class="arrow" viewBox="0 0 24 24" style="transform:rotate(${ROT[d]}deg)" fill="none" stroke="var(--ink)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V5M5.5 11.5 12 5l6.5 6.5"/></svg>`;
-  const tileHtml = (c, cls = '') => `<div class="tile ${cls}" style="background:var(--${c})"><div class="shapes">${shapesFor(c)}</div></div>`;
+  const tileHtml = (c, cls = '') => `<div class="tile ${cls}" style="background:var(--${c})">${shapesDiv(c)}</div>`;
   const usesMixing = (l) => l.orders.some((o) => PARENTS[o.c]);
 
   function render(s, opts = {}) {
@@ -609,7 +627,7 @@
           t.className = 'tile unit';
           t.dataset.u = i;
           t.style.background = `var(--${u.c})`;
-          t.innerHTML = `<div class="shapes">${shapesFor(u.c)}</div>${arrowSvg(u.d)}`;
+          t.innerHTML = `${shapesDiv(u.c)}${arrowSvg(u.d)}`;
           t.setAttribute('role', 'button');
           t.setAttribute('aria-label', `${NAMES[u.c]} block pointing ${{ '^': 'up', v: 'down', '<': 'left', '>': 'right' }[u.d]}`);
           t.addEventListener('pointerdown', (e) => { e.preventDefault(); onTap(i); });
@@ -631,13 +649,228 @@
   }
   window.addEventListener('resize', () => level && sizeBoard());
 
+  // ---------- mini tutorials ----------
+  // Each intro loops a tiny scripted scene built from real tiles, shown once before the level that introduces it.
+  const INTROS = {
+    tap: {
+      title: 'Tap to send blocks out',
+      text: 'A block leaves the way its arrow points, but only if nothing is in front of it. It goes through the tray to the order.',
+      stage: { order: ['R', 2], tray: [null, null, null], board: ['R^', 'R^'] },
+      async play(d) {
+        await d.tap(d.unit(1));
+        d.blocked(d.unit(1), d.unit(0));
+        await d.wait(700);
+        await d.tap(d.unit(0));
+        await d.send(d.unit(0), 0, { toOrder: true });
+        await d.wait(300);
+        await d.tap(d.unit(1));
+        await d.send(d.unit(1), 0, { toOrder: true });
+      },
+    },
+    tray: {
+      title: 'The tray',
+      text: "Blocks the order doesn't want wait in the tray until an order needs them. If the tray fills up, you lose.",
+      stage: { order: ['R', 1], tray: [null, null, null], board: ['B^ R^'] },
+      async play(d) {
+        await d.tap(d.unit(0));
+        await d.send(d.unit(0), 0);
+        d.tag(d.slot(0), 'waits here', 'var(--muted)');
+        await d.wait(900);
+        await d.tap(d.unit(1));
+        await d.send(d.unit(1), 1, { toOrder: true });
+      },
+    },
+    mix: {
+      title: 'Mixing',
+      text: 'When two different colours meet in the tray, they mix. Red + blue = purple.',
+      stage: { order: ['P', 1], tray: [null, null, null], board: ['R^ B^'] },
+      async play(d) {
+        await d.tap(d.unit(0));
+        await d.send(d.unit(0), 0);
+        await d.wait(400);
+        await d.tap(d.unit(1));
+        await d.send(d.unit(1), 0, { mixTo: 'P', toOrder: true });
+      },
+    },
+    mix2: {
+      title: 'Yellow mixes too',
+      text: 'Red + yellow = orange. Blue + yellow = green. The key under the tray reminds you.',
+      stage: { order: ['O', 1], tray: [null, null, null], board: ['R^ Y^ B^ Y^'] },
+      async play(d) {
+        await d.tap(d.unit(0));
+        await d.send(d.unit(0), 0);
+        await d.tap(d.unit(1));
+        await d.send(d.unit(1), 0, { mixTo: 'O', toOrder: true });
+        await d.wait(300);
+        d.setOrder('G', 1);
+        await d.wait(400);
+        await d.tap(d.unit(2));
+        await d.send(d.unit(2), 0);
+        await d.tap(d.unit(3));
+        await d.send(d.unit(3), 0, { mixTo: 'G', toOrder: true });
+      },
+    },
+    full: {
+      title: 'Watch the full tray',
+      text: 'If the tray is full, a new block mixes with a colour already there, even into a colour nobody ordered. Keep a slot free.',
+      stage: { order: ['P', 2], tray: ['R', 'R', 'R'], board: ['Y^'] },
+      async play(d) {
+        await d.wait(400);
+        await d.tap(d.unit(0));
+        await d.send(d.unit(0), 0, { mixTo: 'O', forced: true });
+        d.tag(d.slot(0), 'nobody wants orange', 'var(--bad)');
+      },
+    },
+    hard: {
+      title: 'Hard level',
+      text: 'Only 2 tray slots. Look at the next order before every tap.',
+      stage: { order: ['G', 3], tray: [null, null], board: [] },
+    },
+  };
+
+  let demoRun = 0;
+  function showIntro(key, first) {
+    const intro = INTROS[key];
+    const shownAt = performance.now();
+    showSheet(`
+      <span class="eyebrow">${first ? `New in ${level.name}` : 'How to play'}</span>
+      <h2>${intro.title}</h2>
+      <div class="demo" id="demo" aria-hidden="true"></div>
+      <p>${intro.text}</p>
+      <div class="actions"><button class="primary" id="ovGotIt" type="button">${first ? 'Got it' : 'Close'}</button></div>`);
+    logEvent('intro_shown', { intro: key, first });
+    $('ovGotIt').addEventListener('click', () => {
+      db.seen = { ...db.seen, [key]: true };
+      logEvent('intro_done', { intro: key, ms: Math.round(performance.now() - shownAt) });
+      hideOverlay();
+    });
+    playDemo(intro, $('demo'));
+  }
+
+  async function playDemo(intro, stage) {
+    const run = ++demoRun;
+    const alive = () => run === demoRun && stage.isConnected;
+    try {
+      do {
+        const d = demoKit(stage, intro.stage, alive);
+        if (!intro.play) return;
+        await d.wait(500);
+        await intro.play(d);
+        await d.wait(1400);
+      } while (alive() && !reduced);
+    } catch {
+      // The sheet was closed mid-scene.
+    }
+  }
+
+  function demoKit(stage, { order, tray, board }, alive) {
+    let filled = 0;
+    let current = order;
+    const cells = board.flatMap((row) => row.split(/\s+/));
+    const cols = board[0] ? board[0].split(/\s+/).length : 0;
+    stage.innerHTML = `
+      <div class="d-order">${orderHtml(...order)}</div>
+      <div class="d-tray">${tray.map((q) => `<div class="slot${q ? ' filled' : ''}">${q ? tileHtml(q, 'big') : ''}</div>`).join('')}</div>
+      ${cols ? `<div class="d-board" style="grid-template-columns:repeat(${cols}, 46px)">${cells.map((t) =>
+        `<div class="cell">${t === '..' ? '' : `<div class="tile unit" style="background:var(--${t[0]})">${shapesDiv(t[0])}${arrowSvg(t[1])}</div>`}</div>`).join('')}</div>` : ''}
+      <div class="finger"></div>`;
+    const $$ = (sel) => [...stage.querySelectorAll(sel)];
+    const rel = (el) => {
+      const s = stage.getBoundingClientRect();
+      const r = el.getBoundingClientRect();
+      return { left: r.left - s.left, top: r.top - s.top, width: r.width, height: r.height };
+    };
+    function orderHtml(c, n) { return `<div class="swatch">${tileHtml(c, 'big')}</div><span>${filled}/${n} ${NAMES[c]}</span>`; }
+    const guard = () => { if (!alive()) throw new Error('closed'); };
+    const d = {
+      unit: (i) => $$('.d-board .cell')[i].querySelector('.tile') || $$('.d-board .cell')[i],
+      slot: (j) => $$('.d-tray .slot')[j],
+      wait: async (ms) => { await wait(ms); guard(); },
+      async tap(el) {
+        guard();
+        const f = stage.querySelector('.finger');
+        const r = rel(el);
+        Object.assign(f.style, { left: r.left + r.width / 2 + 'px', top: r.top + r.height / 2 + 'px' });
+        f.classList.remove('tap');
+        void f.offsetWidth;
+        f.classList.add('tap');
+        await d.wait(300);
+      },
+      blocked(el, blocker) {
+        el.style.setProperty('--nudge', '-8px');
+        el.classList.add('shake-y');
+        blocker.classList.add('blocker');
+      },
+      // Fly a board tile into tray slot j, optionally mix there, optionally continue to the order.
+      async send(el, j, { mixTo, forced, toOrder } = {}) {
+        guard();
+        const c = [...'RYB'].find((p) => el.style.background.includes(`--${p}`));
+        const f = document.createElement('div');
+        f.className = 'fly';
+        const r0 = rel(el);
+        Object.assign(f.style, { left: r0.left + 'px', top: r0.top + 'px', width: r0.width + 'px', height: r0.height + 'px' });
+        f.innerHTML = tileHtml(c, 'big');
+        stage.appendChild(f);
+        el.style.visibility = 'hidden';
+        const slot = d.slot(j);
+        const sr = rel(slot);
+        await moveTo(f, { left: sr.left + 3, top: sr.top + 3, width: sr.width - 6, height: sr.height - 6 }, 380);
+        guard();
+        if (mixTo) {
+          slot.innerHTML = '';
+          slot.classList.remove('filled');
+          await merge(f, mixTo);
+          guard();
+        }
+        if (toOrder) {
+          await d.wait(150);
+          await moveTo(f, rel(stage.querySelector('.d-order .swatch')), 320);
+          guard();
+          f.remove();
+          filled++;
+          stage.querySelector('.d-order').innerHTML = orderHtml(...current);
+          stage.querySelector('.d-order').classList.add('pop');
+        } else {
+          f.remove();
+          slot.innerHTML = tileHtml(mixTo || c, 'big');
+          slot.classList.add('filled');
+          if (forced) slot.classList.add('forced');
+        }
+      },
+      setOrder(c, n) {
+        filled = 0;
+        current = [c, n];
+        const o = stage.querySelector('.d-order');
+        o.innerHTML = orderHtml(c, n);
+        o.classList.remove('pop');
+        o.classList.add('enter');
+      },
+      tag(el, text, colour) {
+        const t = document.createElement('div');
+        t.className = 'd-tag';
+        t.textContent = text;
+        t.style.color = colour;
+        stage.appendChild(t);
+        const r = rel(el);
+        Object.assign(t.style, { left: r.left + r.width / 2 - t.offsetWidth / 2 + 'px', top: r.top + r.height + 4 + 'px' });
+        requestAnimationFrame(() => { t.style.opacity = 1; });
+      },
+    };
+    return d;
+  }
+
+  function latestIntro() {
+    for (let i = idx; i >= 0; i--) if (levels[i].intro) return levels[i].intro;
+    return 'tap';
+  }
+
   // ---------- overlays ----------
   function showSheet(html) {
     $('sheet').innerHTML = html;
     $('overlay').hidden = false;
     $('sheet').querySelector('button')?.focus({ preventScroll: true });
   }
-  function hideOverlay() { $('overlay').hidden = true; delete $('overlay').dataset.dismiss; }
+  function hideOverlay() { $('overlay').hidden = true; delete $('overlay').dataset.dismiss; demoRun++; }
   $('overlay').addEventListener('click', (e) => {
     if (e.target === $('overlay') && $('overlay').dataset.dismiss) hideOverlay();
   });
@@ -692,6 +925,7 @@
     });
   }
 
+  $('btnHelp').addEventListener('click', () => showIntro(latestIntro(), false));
   $('btnRestart').addEventListener('click', () => { abandon(); load(idx); });
   $('btnLevels').addEventListener('click', showLevels);
   $('btnStats').addEventListener('click', showStats);

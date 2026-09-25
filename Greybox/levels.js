@@ -1,9 +1,11 @@
 // Hand-made greybox levels following the L1-L10 curve in docs/game-design.md.
+// intro: the mini tutorial shown before the level that introduces a feature (see INTROS in index.html).
 // Check every level with `node Greybox/solve.mjs` after editing.
 
 export const LEVELS = [
   {
     name: 'Level 1',
+    intro: 'tap',
     hint: 'Tap a block to send it to the tray, then up to the order. A block can only leave if nothing is in the way of its arrow.',
     capacity: 5,
     active: 1,
@@ -15,6 +17,7 @@ export const LEVELS = [
   },
   {
     name: 'Level 2',
+    intro: 'tray',
     hint: 'The order only wants red. Blue blocks wait in the tray until a blue order comes up. Don\'t let the tray fill!',
     capacity: 4,
     active: 1,
@@ -28,6 +31,7 @@ export const LEVELS = [
   },
   {
     name: 'Level 3',
+    intro: 'mix',
     hint: 'Red and blue mix into purple in the tray. Tap a red, then a blue.',
     capacity: 3,
     active: 1,
@@ -39,6 +43,7 @@ export const LEVELS = [
   },
   {
     name: 'Level 4',
+    intro: 'mix2',
     hint: 'Red + yellow make orange. Blue + yellow make green.',
     capacity: 3,
     active: 2,
@@ -77,6 +82,7 @@ export const LEVELS = [
   },
   {
     name: 'Level 7',
+    intro: 'full',
     hint: 'If the tray is full, a new block mixes with a colour already there, even one nobody ordered. Keep a slot free.',
     capacity: 3,
     active: 1,
@@ -116,6 +122,7 @@ export const LEVELS = [
   },
   {
     name: 'Level 10',
+    intro: 'hard',
     hard: true,
     capacity: 2,
     active: 1,

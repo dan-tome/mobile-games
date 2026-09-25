@@ -81,13 +81,13 @@ New decisions it creates:
   - Each new element first appears in a relief level.
 
 ## Fail moment and offer
-**What the player sees:**
-- On overflow, the unit bounces off the full tray, the tray flashes red, and the screen shows **"So close! N units left"**.
-- On dead inventory, the wasted secondary pulses and the screen shows "Wrong mix!".
+Both fails have the same cause, a full tray, so the player sees one fail screen. Dead inventory only ever follows a forced mix (placement rule 4), which only happens when the tray is full.
 
-**The continue offer:**
-- Overflow: **+2 tray slots** for this attempt.
-- Dead inventory: **Undo last 3 moves**.
+**What the player sees:**
+- **Overflow:** the unit bounces off the full tray, the tray flashes red, and the screen shows **"Tray full! So close: N blocks left"**.
+- **Forced mix:** the same screen, plus the unwanted mix shown pulsing as `a + b = c`.
+
+**The continue offer:** **+2 tray slots** for this attempt. The failing tap is rewound and replayed, so with the free slots it can neither overflow nor force a mix.
 
 In Phase 2 the offer is free, just to measure how often it's taken. It is priced in Phase 4 (rewarded ad, or coins, with the price from remote config).
 
@@ -98,8 +98,8 @@ In Phase 2 the offer is free, just to measure how often it's taken. It is priced
 
 ## Art direction
 - **Style:** flat geometric. Units are rounded squares carrying an arrow glyph.
-- **Palette:** saturated primaries on a dark navy background. Tiles carry colour only, with no shapes (decided after the first playtest).
-- **Colour-blind support:** deferred. Colour alone carries the game, and orange/green and red/green pairs are hard for red-green colour-blind players. Revisit before Phase 3, for example as an optional setting.
+- **Palette:** saturated primaries on a dark navy background. Tiles carry colour only, with no shapes (decided after the first playtest). Purple is a dark purple (#6a1b9a) because the original light purple was almost identical to blue for deuteranopes (CIELAB ΔE 4, now 30). Text naming purple uses a light tint (#c9a0ff) for contrast.
+- **Colour-blind support:** otherwise deferred. Yellow/orange is now the closest pair for red-green colour-blind players (ΔE 13 for deuteranopia). Revisit before Phase 3, for example as an optional setting.
 - **Asset source:** built in-engine (sprites), plus one free font and at most one UI pack (≤ £50).
 
 ## Ad creative concepts (3)

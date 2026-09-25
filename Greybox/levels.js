@@ -44,7 +44,7 @@ export const LEVELS = [
   {
     name: 'Level 4',
     hint: 'Yellow is new. Work out what it mixes into.',
-    capacity: 3,
+    capacity: 4,
     active: 2,
     orders: 'Y3 O2 G2 B2 Y2',
     board: [
@@ -83,8 +83,8 @@ export const LEVELS = [
     name: 'Level 7',
     intro: 'full',
     hint: 'If the tray is full, a new block mixes with a colour already there, even one nobody ordered. Keep a slot free.',
-    capacity: 3,
-    active: 1,
+    capacity: 4,
+    active: 2,
     orders: 'Y3 P3 O2 B2 G2 R2',
     board: [
       'R^ Y^ B^ Y^ R^',
@@ -98,7 +98,7 @@ export const LEVELS = [
     name: 'Level 8',
     capacity: 4,
     active: 1,
-    orders: 'G2 R2 O2 P2',
+    orders: 'G2 O2 R2 P2',
     board: [
       'Y^ Y^ B^ B^',
       'R< Y^ B^ R>',
@@ -108,7 +108,7 @@ export const LEVELS = [
   },
   {
     name: 'Level 9',
-    capacity: 3,
+    capacity: 4,
     active: 1,
     orders: 'R2 G3 P3 Y2 O3 B2',
     board: [

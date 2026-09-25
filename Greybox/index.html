@@ -20,7 +20,9 @@
     --R: #ef4b4b;
     --Y: #f7c443;
     --B: #3d8bfd;
-    --P: #9d5cf0;
+    /* Dark purple so it stays apart from blue for red-green colour-blind players. */
+    --P: #6a1b9a;
+    --P-text: #c9a0ff;
     --O: #f58a2e;
     --G: #33c27f;
     --cs: 52px;
@@ -108,6 +110,9 @@
   .slot.filled { border-style: solid; border-color: transparent; }
   .slot.extra { border-color: var(--good); }
   .slot.forced .tile { animation: warn 0.9s 2; }
+  .slot.wasted .tile, .sheet .wasted { animation: warn 0.9s infinite; }
+  .sheet .recipe { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 22px; color: var(--muted); }
+  .sheet .recipe .tile { width: 44px; height: 44px; }
   #tray.full .slot { border-color: var(--bad); }
   #tray.shake { animation: shakeX 0.3s; --nudge: 6px; }
 
@@ -463,7 +468,7 @@
     clearTimeout(noteTimer);
     if (html) noteTimer = setTimeout(() => { n.style.opacity = 0; }, 1800);
   }
-  const word = (c, upper) => `<span style="color:var(--${c})">${upper ? cap(NAMES[c]) : NAMES[c]}</span>`;
+  const word = (c, upper) => `<span style="color:var(--${c}-text, var(--${c}))">${upper ? cap(NAMES[c]) : NAMES[c]}</span>`;
   function mixNote(a, b, c, forced) {
     if (forced) note(`Tray full, so ${word(a)} + ${word(b)} = ${word(c)}`, true);
     else note(`${word(a, true)} + ${word(b)} = ${word(c)}`);
@@ -500,17 +505,21 @@
     buzz([40, 60, 40]);
     const left = unitsLeft(state);
     const canContinue = !attempt.continued;
-    const offer = kind === 'overflow' ? 'Continue: +2 tray slots' : 'Continue: undo last 3 taps';
-    const mixed = placement?.kind === 'forced' ? ` The ${NAMES[placement.colour]} isn't needed.` : '';
+    // A wrong mix only ever comes from a forced mix (rule 4), so both fails are a full tray to the player.
+    const forced = placement?.kind === 'forced';
+    if (forced) $('tray').children[placement.slot]?.classList.add('wasted');
+    $('tray').classList.add('full');
+    const why = forced
+      ? `No free slot, so ${word(level.units[u].c)} mixed with ${word(placement.partner)} into ${word(placement.colour)}. No order needs it.`
+      : 'There was no room left in the tray.';
     // Let the player see the full tray or wasted mix before the sheet covers it.
     setTimeout(() => {
       showSheet(`
-        <h2>${kind === 'overflow' ? 'Tray full!' : 'Wrong mix!'}</h2>
-        <p>${kind === 'overflow'
-          ? `There was no room left in the tray. So close: ${left} block${left === 1 ? '' : 's'} left.`
-          : `That mix used up colours the orders still need.${mixed} ${left} block${left === 1 ? '' : 's'} left.`}</p>
+        <h2>Tray full!</h2>
+        ${forced ? `<div class="recipe">${tileHtml(level.units[u].c)}+${tileHtml(placement.partner)}=${tileHtml(placement.colour, 'wasted')}</div>` : ''}
+        <p>${why} So close: ${left} block${left === 1 ? '' : 's'} left.</p>
         <div class="actions">
-          ${canContinue ? `<button class="offer" id="ovContinue" type="button">${offer}<small>Free in the greybox</small></button>` : ''}
+          ${canContinue ? `<button class="offer" id="ovContinue" type="button">Continue: +2 tray slots<small>Free in the greybox</small></button>` : ''}
           <button id="ovRetry" type="button" ${canContinue ? '' : 'class="primary"'}>Retry</button>
         </div>`);
       $('ovRetry').addEventListener('click', () => { attempt.over = true; rec(level.name).ms += attempt.ms; save(); load(idx); });
@@ -524,21 +533,12 @@
     logEvent('continue', { reason: kind });
     hideOverlay();
     attempt.t0 = performance.now();
-    if (kind === 'overflow') {
-      // state is the pre-tap state: add two slots, then replay the same tap.
-      history.pop();
-      state = clone(state);
-      state.tray.push(null, null);
-      render(state);
-      note('+2 tray slots');
-      playTap(u);
-    } else {
-      const back = Math.min(3, history.length);
-      state = history[history.length - back];
-      history.length -= back;
-      render(state);
-      note('Undid 3 taps');
-    }
+    // Rewind to before the failing tap, add two slots, then replay it. With free slots it can't overflow or force a mix.
+    state = clone(history.pop());
+    state.tray.push(null, null);
+    render(state);
+    note('+2 tray slots');
+    playTap(u);
   }
 
   // ---------- rendering ----------

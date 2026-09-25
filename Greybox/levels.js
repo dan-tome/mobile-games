@@ -4,7 +4,7 @@
 export const LEVELS = [
   {
     name: 'Level 1',
-    hint: 'Tap a block. It slides out the way its arrow points, if nothing is in the way.',
+    hint: 'Tap a block to send it to the tray, then up to the order. A block can only leave if nothing is in the way of its arrow.',
     capacity: 5,
     active: 1,
     orders: 'R3 R3',
@@ -15,7 +15,7 @@ export const LEVELS = [
   },
   {
     name: 'Level 2',
-    hint: 'Blocks wait in the tray until an order wants them. Clear the way first.',
+    hint: 'The order only wants red. Blue blocks wait in the tray until a blue order comes up. Don\'t let the tray fill!',
     capacity: 4,
     active: 1,
     orders: 'R3 B3 R3 B3',
@@ -28,7 +28,7 @@ export const LEVELS = [
   },
   {
     name: 'Level 3',
-    hint: 'Red + blue make purple. Drop one onto the other in the tray.',
+    hint: 'Red and blue mix into purple in the tray. Tap a red, then a blue.',
     capacity: 3,
     active: 1,
     orders: 'P3',
@@ -39,7 +39,7 @@ export const LEVELS = [
   },
   {
     name: 'Level 4',
-    hint: 'Yellow + red make orange. Yellow + blue make green.',
+    hint: 'Red + yellow make orange. Blue + yellow make green.',
     capacity: 3,
     active: 2,
     orders: 'Y3 O2 G2 B2 Y2',
@@ -77,7 +77,7 @@ export const LEVELS = [
   },
   {
     name: 'Level 7',
-    hint: 'Full tray? A new block mixes with whatever is waiting, even if nobody ordered that colour.',
+    hint: 'If the tray is full, a new block mixes with a colour already there, even one nobody ordered. Keep a slot free.',
     capacity: 3,
     active: 1,
     orders: 'Y3 P3 O2 B2 G2 R2',

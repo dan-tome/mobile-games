@@ -112,7 +112,7 @@ function place(level, s, p) {
     if (k >= 0) {
       s.tray[j] = null;
       s.active[k].filled++;
-      return { kind: 'mix', slot: j, pos: k, colour: m };
+      return { kind: 'mix', slot: j, pos: k, colour: m, partner: q };
     }
   }
   const j = s.tray.indexOf(null);
@@ -122,20 +122,21 @@ function place(level, s, p) {
   }
   const f = s.tray.findIndex((q) => q && isPrimary(q) && q !== p);
   if (f >= 0) {
-    s.tray[f] = mix(p, s.tray[f]);
-    return { kind: 'forced', slot: f, colour: s.tray[f] };
+    const q0 = s.tray[f];
+    s.tray[f] = mix(p, q0);
+    return { kind: 'forced', slot: f, colour: s.tray[f], partner: q0 };
   }
   return { kind: 'overflow' };
 }
 
-function settle(level, s) {
+function settle(level, s, trace) {
   const events = [];
   for (let changed = true; changed; ) {
     changed = false;
     s.active.forEach((o, k) => {
       if (o && o.filled >= level.orders[o.i].n) {
-        events.push({ kind: 'orderDone', pos: k });
         s.active[k] = s.next < level.orders.length ? { i: s.next++, filled: 0 } : null;
+        events.push({ kind: 'orderDone', pos: k, state: trace && clone(s) });
         changed = true;
       }
     });
@@ -146,7 +147,7 @@ function settle(level, s) {
         if (s.tray[j] === c) {
           s.tray[j] = null;
           o.filled++;
-          events.push({ kind: 'pull', slot: j, pos: k });
+          events.push({ kind: 'pull', slot: j, pos: k, colour: c, state: trace && clone(s) });
           changed = true;
         }
       }
@@ -156,11 +157,12 @@ function settle(level, s) {
         const j1 = s.tray.findIndex((q) => q === a || q === b);
         if (j1 < 0) break;
         const other = s.tray[j1] === a ? b : a;
+        const first = s.tray[j1];
         const j2 = s.tray.indexOf(other);
         if (j2 < 0) break;
         s.tray[j1] = s.tray[j2] = null;
         o.filled++;
-        events.push({ kind: 'pairMix', slots: [j1, j2], pos: k });
+        events.push({ kind: 'pairMix', slots: [j1, j2], parents: [first, other], pos: k, colour: c, state: trace && clone(s) });
         changed = true;
       }
     });
@@ -188,16 +190,18 @@ export function isDead(level, s) {
 }
 
 // result: 'blocked' | 'ok' | 'overflow' | 'dead' | 'win'
-export function tap(level, s, u) {
+// trace: also return a state snapshot after placement and after every settle event (for animation).
+export function tap(level, s, u, trace = false) {
   if (!isFree(level, s, u)) return { state: s, result: 'blocked' };
   const n = clone(s);
   n.alive[u] = false;
   n.moves++;
   const placement = place(level, n, level.units[u].c);
   if (placement.kind === 'overflow') return { state: n, result: 'overflow', placement, events: [] };
-  const events = settle(level, n);
+  const afterPlace = trace && clone(n);
+  const events = settle(level, n, trace);
   const result = isWin(level, n) ? 'win' : isDead(level, n) ? 'dead' : 'ok';
-  return { state: n, result, placement, events };
+  return { state: n, result, placement, afterPlace, events };
 }
 
 export const freeSlots = (s) => s.tray.filter((q) => !q).length;

@@ -62,12 +62,14 @@ New decisions it creates:
 - **Colour-order mismatch:** how far apart on the board the two halves of a needed secondary sit.
 
 ## Level curve (first 30 levels)
+- **How features are taught:** a level that introduces a feature opens with a short looping demo built from real tiles and one sentence of text. It shows once and can be replayed.
 - **Levels 1–3, tutorial:**
-  - L1 teaches tap to exit and that a blocked unit shakes (red only, 1 order, `C`=7).
-  - L2 teaches dependency order (red + blue, primary orders only).
-  - L3 teaches mixing: one purple order, with a hand hint on the first merge.
+  - L1 teaches tap to exit and that a blocked unit shakes (red only, 1 order).
+  - L2 teaches the tray: blocks the active order doesn't want wait there (red + blue, primary orders only).
+  - L3 teaches mixing: red + blue = purple, one purple order. This is the only recipe the game explains.
 - **Levels 4–10:**
-  - Yellow and the other two secondaries arrive at L4–5.
+  - Yellow arrives at L4 with orange and green orders but no explanation. Working out red + yellow = orange and blue + yellow = green is part of the challenge. There is no recipe key on screen. A caption names the mix after it happens.
+  - L5 is the first level with all three secondaries.
   - `C` drops 7 → 5.
   - The first possible forced mix comes at L7.
   - L10 is the first labelled **Hard** level (slack 0, trap ratio ≈ 30%).
@@ -96,9 +98,9 @@ In Phase 2 the offer is free, just to measure how often it's taken. It is priced
 
 ## Art direction
 - **Style:** flat geometric. Units are rounded squares carrying an arrow glyph.
-- **Palette:** saturated primaries on a dark navy background, with a colour-blind-safe palette.
-- **Colour-blind support:** each primary has a shape (R ●, Y ▲, B ■), and each secondary shows its two parents' shapes.
-- **Asset source:** built in-engine (sprites, Shapes), plus one free font and at most one UI pack (≤ £50).
+- **Palette:** saturated primaries on a dark navy background. Tiles carry colour only, with no shapes (decided after the first playtest).
+- **Colour-blind support:** deferred. Colour alone carries the game, and orange/green and red/green pairs are hard for red-green colour-blind players. Revisit before Phase 3, for example as an optional setting.
+- **Asset source:** built in-engine (sprites), plus one free font and at most one UI pack (≤ £50).
 
 ## Ad creative concepts (3)
 1. **"Can you make purple?"** A close-up of red flying into a slot holding blue, a purple splash, and an order filling. Ends on a tray with one slot left.

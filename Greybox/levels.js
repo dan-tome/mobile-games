@@ -43,8 +43,7 @@ export const LEVELS = [
   },
   {
     name: 'Level 4',
-    intro: 'mix2',
-    hint: 'Red + yellow make orange. Blue + yellow make green.',
+    hint: 'Yellow is new. Work out what it mixes into.',
     capacity: 3,
     active: 2,
     orders: 'Y3 O2 G2 B2 Y2',

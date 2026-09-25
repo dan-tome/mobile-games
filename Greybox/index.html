@@ -13,7 +13,6 @@
     --muted: #8c97b5;
     --ink: rgba(12, 17, 32, 0.78);
     --ink-soft: rgba(12, 17, 32, 0.42);
-    --ink-faint: rgba(12, 17, 32, 0.2);
     --btn: #2a3663;
     --btn-hi: #36447a;
     --good: #33c27f;
@@ -112,10 +111,6 @@
   #tray.full .slot { border-color: var(--bad); }
   #tray.shake { animation: shakeX 0.3s; --nudge: 6px; }
 
-  #recipes { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
-  #recipes span { display: inline-flex; align-items: center; gap: 4px; }
-  .dot { width: 14px; height: 14px; border-radius: 4px; display: inline-block; }
-
   #note { min-height: 20px; font-size: 15px; font-weight: 500; text-align: center; transition: opacity 0.3s; }
   #note.warn { color: var(--O); }
   #hint { color: var(--muted); font-size: 14px; line-height: 1.35; text-align: center; text-wrap: balance; }
@@ -137,11 +132,6 @@
   }
   .unit { cursor: pointer; touch-action: manipulation; }
   .tile .arrow { width: 50%; height: 50%; position: relative; z-index: 1; }
-  /* Shapes are the colour-blind cue: one large shape per primary, two for a mix. */
-  .tile .shapes { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 4%; pointer-events: none; }
-  .tile .shapes svg { width: 60%; height: 60%; }
-  .tile .shapes.two svg { width: 40%; height: 40%; }
-  .unit .shapes svg { width: 72%; height: 72%; fill: var(--ink-faint); }
   .swatch { width: 44px; height: 44px; flex: 0 0 auto; }
   .order.next .swatch { width: 30px; height: 30px; }
 
@@ -240,7 +230,6 @@
     <div id="flow" aria-hidden="true">▲</div>
     <div id="tray"></div>
     <div class="labelrow"><span class="label">Tray · waits for an order</span><span class="label" id="trayCount"></span></div>
-    <div id="recipes"></div>
   </section>
   <div id="note" aria-live="polite"></div>
   <div id="hint"></div>
@@ -250,16 +239,11 @@
 
 <script type="module">
   import { LEVELS } from './levels.js';
-  import { parseLevel, initialState, tap, isFree, unitsLeft, clone, PARENTS } from './rules.js';
+  import { parseLevel, initialState, tap, isFree, unitsLeft, clone } from './rules.js';
 
   const $ = (id) => document.getElementById(id);
   const NAMES = { R: 'red', Y: 'yellow', B: 'blue', P: 'purple', O: 'orange', G: 'green' };
   const cap = (s) => s[0].toUpperCase() + s.slice(1);
-  const SHAPE = {
-    R: '<circle cx="12" cy="12" r="9"/>',
-    Y: '<path d="M12 3 L21.5 20 H2.5 Z"/>',
-    B: '<rect x="4" y="4" width="16" height="16" rx="2"/>',
-  };
   const ROT = { '^': 0, '>': 90, v: 180, '<': 270 };
   const DELTA = { '^': [0, -1], v: [0, 1], '<': [-1, 0], '>': [1, 0] };
   // Animation timings (ms). One place to tune how fast the pipeline plays.
@@ -558,11 +542,8 @@
   }
 
   // ---------- rendering ----------
-  const shapesFor = (c) => (PARENTS[c] || [c]).map((p) => `<svg viewBox="0 0 24 24" fill="var(--ink-soft)">${SHAPE[p]}</svg>`).join('');
-  const shapesDiv = (c) => `<div class="shapes${PARENTS[c] ? ' two' : ''}">${shapesFor(c)}</div>`;
   const arrowSvg = (d) => `<svg class="arrow" viewBox="0 0 24 24" style="transform:rotate(${ROT[d]}deg)" fill="none" stroke="var(--ink)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V5M5.5 11.5 12 5l6.5 6.5"/></svg>`;
-  const tileHtml = (c, cls = '') => `<div class="tile ${cls}" style="background:var(--${c})">${shapesDiv(c)}</div>`;
-  const usesMixing = (l) => l.orders.some((o) => PARENTS[o.c]);
+  const tileHtml = (c, cls = '') => `<div class="tile ${cls}" style="background:var(--${c})"></div>`;
 
   function render(s, opts = {}) {
     $('title').innerHTML = `${level.name}${level.hard ? ' <span class="pill">Hard</span>' : ''}`;
@@ -602,13 +583,6 @@
       tray.appendChild(el);
     });
     $('trayCount').textContent = `${s.tray.filter(Boolean).length}/${s.tray.length}`;
-    $('recipes').innerHTML = usesMixing(level)
-      ? ['P', 'O', 'G'].map((c) => {
-          const [a, b] = PARENTS[c];
-          return `<span><i class="dot" style="background:var(--${a})"></i>+<i class="dot" style="background:var(--${b})"></i>=<i class="dot" style="background:var(--${c})"></i></span>`;
-        }).join('')
-      : '';
-
     // board
     const board = $('board');
     board.style.gridTemplateColumns = `repeat(${level.w}, var(--cs))`;
@@ -627,7 +601,7 @@
           t.className = 'tile unit';
           t.dataset.u = i;
           t.style.background = `var(--${u.c})`;
-          t.innerHTML = `${shapesDiv(u.c)}${arrowSvg(u.d)}`;
+          t.innerHTML = arrowSvg(u.d);
           t.setAttribute('role', 'button');
           t.setAttribute('aria-label', `${NAMES[u.c]} block pointing ${{ '^': 'up', v: 'down', '<': 'left', '>': 'right' }[u.d]}`);
           t.addEventListener('pointerdown', (e) => { e.preventDefault(); onTap(i); });
@@ -692,24 +666,6 @@
         await d.send(d.unit(1), 0, { mixTo: 'P', toOrder: true });
       },
     },
-    mix2: {
-      title: 'Yellow mixes too',
-      text: 'Red + yellow = orange. Blue + yellow = green. The key under the tray reminds you.',
-      stage: { order: ['O', 1], tray: [null, null, null], board: ['R^ Y^ B^ Y^'] },
-      async play(d) {
-        await d.tap(d.unit(0));
-        await d.send(d.unit(0), 0);
-        await d.tap(d.unit(1));
-        await d.send(d.unit(1), 0, { mixTo: 'O', toOrder: true });
-        await d.wait(300);
-        d.setOrder('G', 1);
-        await d.wait(400);
-        await d.tap(d.unit(2));
-        await d.send(d.unit(2), 0);
-        await d.tap(d.unit(3));
-        await d.send(d.unit(3), 0, { mixTo: 'G', toOrder: true });
-      },
-    },
     full: {
       title: 'Watch the full tray',
       text: 'If the tray is full, a new block mixes with a colour already there, even into a colour nobody ordered. Keep a slot free.',
@@ -772,7 +728,7 @@
       <div class="d-order">${orderHtml(...order)}</div>
       <div class="d-tray">${tray.map((q) => `<div class="slot${q ? ' filled' : ''}">${q ? tileHtml(q, 'big') : ''}</div>`).join('')}</div>
       ${cols ? `<div class="d-board" style="grid-template-columns:repeat(${cols}, 46px)">${cells.map((t) =>
-        `<div class="cell">${t === '..' ? '' : `<div class="tile unit" style="background:var(--${t[0]})">${shapesDiv(t[0])}${arrowSvg(t[1])}</div>`}</div>`).join('')}</div>` : ''}
+        `<div class="cell">${t === '..' ? '' : `<div class="tile unit" style="background:var(--${t[0]})">${arrowSvg(t[1])}</div>`}</div>`).join('')}</div>` : ''}
       <div class="finger"></div>`;
     const $$ = (sel) => [...stage.querySelectorAll(sel)];
     const rel = (el) => {
